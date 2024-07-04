@@ -1,0 +1,148 @@
+select * from Employees
+--1.find all employees who earn more than avg salary
+--subquery
+select * from Employees
+where salary > 
+(
+select  avg(salary)avg 
+from Employees
+)
+
+--cte
+with cte as 
+(
+select *,
+       avg(salary) over() as average 
+       from 
+	     Employees
+)
+select * from cte where salary > average
+--------------------------------------------------------------------------------------------------------------------------------
+--2retrive the employee name who work in same department as john
+select firstname from Employees 
+where firstname = 'John'
+or department = 'IT'
+----------------------------------------------------------------------------------------------------------------------------
+--3 Write a query to display the second highest salary from the Employee table
+select * from Employees
+--using denserank
+with cte as
+(
+select *, DENSE_RANK() over(order by salary desc)DK
+from Employees
+)
+select salary from cte 
+where DK =2
+
+--using top-  subquery
+
+select top 1 salary from 
+(
+select top 2 salary from Employees
+order by Salary desc
+) as topsal
+order by salary asc 
+--------------------------------------------------------------------------------------------------------------------------------------
+--4.Write a query to find all customers who have made more than five orders.
+--Ans
+
+--Write a query to find all customers who have made more than one orders
+select * from 
+(
+select *, dense_rank() over(partition by customerid order by orderid)DR
+from orders
+) as repeatedcust
+where DR >1
+------------------------------------------------------------------------------------------------------------------------------------------
+--5. Write a query to count the number of orders placed by each customer.
+select customerid,
+count(orderid) as no_of_orders
+from orders
+group by CustomerID
+---------------------------------------------------------------------------------------------------------------------------
+--6.Write a query to retrieve the list of employees who joined in the last 6 month
+alter table employees 
+add hiredate date 
+update employees set 
+hiredate = '2024-01-01'
+where EmployeeID = 6
+
+select * from employees
+with cte as 
+(
+select * , datediff(month,hiredate,getdate())df
+from Employees
+)
+select * from cte
+where df <=6
+--------------------------------------------------------------------------------------------------------------------------------------------
+--7.Write a query to find the total sales amount per product
+use PortfolioProject
+
+--Ans
+select sum(TotalAmount)total_sales,productid
+from sales
+group by productid
+--------------------------------------------------------------------------------------------------------------------------------------------
+--8.Write a query to list all products that have never been sold
+
+select * from product
+select * from sales
+--Ans
+select * from
+product p
+join sales s on p.productid=s.productid
+where SaleID is null
+---------------------------------------------------------------------------------------------------------------------------------------------------
+--9.Write a query to update the salary of employees based on their performance rating.
+alter table employees 
+add performance varchar(20)
+
+update employees set
+performance = 'C'
+where employeeid= 6
+
+select * from employees
+--Ans
+alter table employees 
+add Updated_salary Decimal(10,2)
+
+update employees set 
+updated_salary = case
+when performance = 'A' then  salary * 1.20
+when performance = 'B' then salary * 1.10
+else salary * 1.05
+end
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+--10.Write a query to delete duplicate rows from a table.
+insert into employees1 values(1,'AAA','IT'),
+(1,'AAA','IT'),
+(2,'BBB','Sales')
+--Ans
+with cte as
+(
+select *, ROW_NUMBER() over (partition by empid order by empid )RN
+from employees1
+)
+Delete  from cte 
+where RN >1
+select * from employees1
+----------------------------------------------------------------------------------------------------------------------------------------------------
+--11.Write a query to find the second highest salary in a company without using the MAX function twice
+--Ans without using max or top
+with cte as 
+(
+select * , DENSE_RANK() over(order by salary desc)Highest
+from employees
+)
+select * from cte
+where Highest =2
+--Ans by using Top
+select top 1 * 
+from 
+(
+select top 2 * from Employees
+order by salary desc
+)t2
+order by salary asc
+select * from Employees
